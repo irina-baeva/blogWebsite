@@ -12,7 +12,7 @@ const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rho
 const app = express();
 //global variable
 let posts = [];
-
+//setting view engine
 app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({
@@ -22,9 +22,12 @@ app.use(express.static("public"));
 
 app.get('/', function (req, res) {
   res.render('home', {
+    //here is a key value pair, key match with variable name
+    // in home.ejs and value = whatever data but here is we have variable
     homeStartingContent: homeStartingContent,
     posts: posts
   });
+  console.log(posts)
 });
 
 app.get('/posts/:postId', function (req, res) {
@@ -59,24 +62,18 @@ app.get('/compose', function (req, res) {
 });
 
 app.post('/compose', function (req, res) {
+  //we creating an object with title and post from req.body.name (info from form input)
   let newTitle = req.body.newTitle;
   let newPost = req.body.newPost;
   const readyPost = {
     title: newTitle,
     post: newPost
   }
+  //add ready post to global variable
   posts.push(readyPost)
+//then we move user back to home page
   res.redirect('/');
-
 });
-
-
-
-
-
-
-
-
 
 
 
