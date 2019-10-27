@@ -1,4 +1,4 @@
-CRUD WebApp allows to publish blog posts
+WebApp allows to publish and read blog posts
 **********
 EJS, NodeJS, MongoDB
 **********
