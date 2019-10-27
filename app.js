@@ -10,8 +10,6 @@ const aboutContent = "Hac habitasse platea dictumst vestibulum rhoncus est pelle
 const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rhoncus urna neque viverra justo nec ultrices. Arcu dui vivamus arcu felis bibendum. Consectetur adipiscing elit duis tristique. Risus viverra adipiscing at in tellus integer feugiat. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Consequat interdum varius sit amet mattis. Iaculis nunc sed augue lacus. Interdum posuere lorem ipsum dolor sit amet consectetur adipiscing elit. Pulvinar elementum integer enim neque. Ultrices gravida dictum fusce ut placerat orci nulla. Mauris in aliquam sem fringilla ut morbi tincidunt. Tortor posuere ac ut consequat semper viverra nam libero.";
 
 const app = express();
-//global variable
-let posts = [];
 //setting view engine
 app.set('view engine', 'ejs');
 
@@ -20,29 +18,38 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(express.static("public"));
 
+//database
+const mongoose = require("mongoose")
+mongoose.connect("mongodb://localhost:27017/blogDB", {useUnifiedTopology: true, useNewUrlParser: true});
+const postSchema = {
+  title: String,
+  content: String
+ };
+ //define  posts collection
+const Post = mongoose.model("Post", postSchema);
+
 app.get('/', function (req, res) {
-  res.render('home', {
-    //here is a key value pair, key match with variable name
-    // in home.ejs and value = whatever data but here is we have variable
-    homeStartingContent: homeStartingContent,
-    posts: posts
-  });
-  console.log(posts)
+  Post.find({}, function(err, posts){
+    res.render('home', {
+      //here is a key value pair, key match with variable name
+      // in home.ejs and value = whatever data but here is we have variable
+      homeStartingContent: homeStartingContent,
+      posts: posts
+    });
+  })
 });
 
 app.get('/posts/:postId', function (req, res) {
   //res.send(req.params)
-  const requestedTitle = _.lowerCase(req.params.postId);
+  // const requestedTitle = _.lowerCase(req.params.postId);
+  const requestedPostId = req.params.postId;
 
-  posts.forEach(function (post) {
-    const storedTitle = _.lowerCase(post.title);
-    if (requestedTitle === storedTitle) {
-      res.render('post', {
-        title: post.title,
-        content: post.post
-      });
-    }
-  })
+  Post.findOne({_id: requestedPostId}, function(err, post){
+    res.render("post", {
+      title: post.title,
+      content: post.content
+    });
+  });
 
 });
 
@@ -58,24 +65,21 @@ app.get('/contact', function (req, res) {
   })
 });
 app.get('/compose', function (req, res) {
-  res.render('compose', {})
+  res.render('compose')
 });
 
 app.post('/compose', function (req, res) {
-  //we creating an object with title and post from req.body.name (info from form input)
-  let newTitle = req.body.newTitle;
-  let newPost = req.body.newPost;
-  const readyPost = {
-    title: newTitle,
-    post: newPost
-  }
-  //add ready post to global variable
-  posts.push(readyPost)
-//then we move user back to home page
-  res.redirect('/');
+  const post = new Post ({
+    title: req.body.newTitle,
+    content: req.body.newPost
+  });
+  //we save the post
+  post.save(function(err){
+    if (!err){
+      res.redirect("/");
+    }
+  });
 });
-
-
 
 app.listen(3000, function () {
   console.log("Server started on port 3000");
